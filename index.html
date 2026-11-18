@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Pantry List</title>
+<style>
+  :root {
+    --bg: #fdf6ee;
+    --card: #ffffff;
+    --warm: #e8833a;
+    --warm-soft: #fbe8d8;
+    --green: #5a9e6f;
+    --green-soft: #e3f2e7;
+    --red: #d9534f;
+    --red-soft: #fbe3e2;
+    --amber: #e6a817;
+    --amber-soft: #fdf3d7;
+    --text: #4a3f35;
+    --muted: #8a7d70;
+    --border: #efe2d3;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 16px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  header {
+    text-align: center;
+    padding: 20px 8px 12px;
+  }
+  header h1 {
+    font-size: 1.6rem;
+    color: var(--warm);
+    letter-spacing: 0.5px;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 4px;
+  }
+  .updated-note {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+  }
+  section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(120, 90, 60, 0.07);
+  }
+  section h2 {
+    font-size: 1.15rem;
+    margin-bottom: 2px;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .count-badge {
+    display: inline-block;
+    background: var(--warm-soft);
+    color: var(--warm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 1px 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  ul.item-list { list-style: none; }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .item:last-child { border-bottom: none; }
+  .item.urgent { background: var(--red-soft); border-radius: 10px; }
+  .item-main { flex: 1; min-width: 0; }
+  .item-name { font-weight: 600; font-size: 0.98rem; }
+  .item-note {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 2px;
+    overflow-wrap: anywhere;
+  }
+  .tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .tag.available { background: var(--green-soft); color: var(--green); }
+  .tag.needed { background: var(--amber-soft); color: #b07d08; }
+  .tag.urgent-tag { background: var(--red); color: #fff; }
+  .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  button {
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+  button:hover { filter: brightness(0.95); }
+  .btn-status {
+    background: var(--warm-soft);
+    color: var(--warm);
+  }
+  .btn-note {
+    background: #f1ede8;
+    color: var(--muted);
+  }
+  .btn-add {
+    background: var(--warm);
+    color: #fff;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
+  .form-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .form-row-top { display: flex; gap: 8px; }
+  input[type="text"], select {
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fffdf9;
+    color: var(--text);
+    width: 100%;
+  }
+  input[type="text"]:focus, select:focus {
+    outline: 2px solid var(--warm-soft);
+    border-color: var(--warm);
+  }
+  .form-row select { width: auto; flex: 1; }
+  .urgent-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .urgent-check input { width: 16px; height: 16px; accent-color: var(--red); }
+  .changes-list { list-style: none; }
+  .change {
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .change:last-child { border-bottom: none; }
+  .change strong { color: var(--text); }
+  .empty-msg {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    padding: 8px 0;
+  }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.78rem;
+    padding: 8px 0 20px;
+  }
+  /* filter buttons for Needed Now */
+  .filter-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .filter-btn {
+    background: #f1ede8;
+    color: var(--muted);
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    border-radius: 999px;
+  }
+  .filter-btn.active {
+    background: var(--warm);
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🥣 Community Pantry List</h1>
+  <p>Taking a little, leaving a little — for neighbours in Ampang Jaya</p>
+</header>
+
+<!-- SECTION 1: Today's Pantry -->
+<section id="pantry-section">
+  <h2>Today's Pantry <span class="count-badge" id="pantry-count">0</span></h2>
+  <p class="section-sub">What's on the shelf right now. Update the note if something changes.</p>
+  <ul class="item-list" id="pantry-list"></ul>
+</section>
+
+<!-- SECTION 2: Needed Now -->
+<section id="needed-section">
+  <h2>Needed Now <span class="count-badge" id="needed-count">0</span></h2>
+  <p class="section-sub">What the pantry still needs — urgent items at the top.</p>
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+    <button class="filter-btn" data-filter="urgent" onclick="setFilter('urgent')">🔴 Urgent only</button>
+  </div>
+  <ul class="item-list" id="needed-list"></ul>
+</section>
+
+<!-- SECTION 3: Quick Update -->
+<section id="update-section">
+  <h2>Quick Update</h2>
+  <p class="section-sub">Add a new item or change what's already listed.</p>
+  <div class="form-row">
+    <div class="form-row-top">
+      <input type="text" id="new-item-name" placeholder="e.g. Beras 5kg, mee instan, susu tin..." onkeydown="if(event.key==='Enter') addItem()">
+      <select id="new-item-status">
+        <option value="needed">Needed</option>
+        <option value="available">Available</option>
+      </select>
+    </div>
+    <div class="form-row-top">
+      <input type="text" id="new-item-note" placeholder="Short note (optional)">
+      <label class="urgent-check">
+        <input type="checkbox" id="new-item-urgent"> Urgent
+      </label>
+      <button class="btn-add" onclick="addItem()">+ Add</button>
+    </div>
+  </div>
+  <h3 style="font-size:0.9rem; margin: 10px 0 6px; color: var(--muted);">Recent changes</h3>
+  <ul class="changes-list" id="changes-list"></ul>
+</section>
+
+<footer>Sample list for today only — it resets when you refresh. Please update it for the next volunteer 🧡</footer>
+
+<script>
+// Sample data — specific to a Malaysian community pantry
+let items = [
+  { id: 1, name: "Beras fragrant 5kg (Cap Rambutan)", status: "available", urgent: false, note: "2 unopened bags on shelf B" },
+  { id: 2, name: "Milo sachets", status: "available", urgent: false, note: "Half box left, near the biscuits" },
+  { id: 3, name: "Sardin tin (Ayam brand)", status: "needed", urgent: true, note: "All gone since Saturday" },
+  { id: 4, name: "Cooking oil 1kg", status: "needed", urgent: false, note: "About 3 bottles short this week" },
+  { id: 5, name: "Bubur rice porridge sachets", status: "needed", urgent: false, note: "Popular with the elderly, always welcome" }
+];
+
+let changes = [
+  { time: "9:12 AM", text: "Rina added <strong>Sardin tin (Ayam brand)</strong> as urgent needed" }
+];
+let changeCount = 1;
+
+let urgentFilter = false;
+let nextId = 6;
+
+function escapeHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function render() {
+  const pantry = items.filter(i => i.status === "available");
+  let needed = items.filter(i => i.status === "needed");
+
+  // Feature 3: urgent needed items sorted to the top
+  needed.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
+  if (urgentFilter) needed = needed.filter(i => i.urgent);
+
+  document.getElementById("pantry-count").textContent = pantry.length;
+  document.getElementById("needed-count").textContent = items.filter(i => i.status === "needed").length;
+
+  // Pantry list
+  const pantryEl = document.getElementById("pantry-list");
+  pantryEl.innerHTML = pantry.length ? "" : '<li class="empty-msg">Shelf is empty right now — anything helps!</li>';
+  pantry.forEach(i => {
+    pantryEl.insertAdjacentHTML("beforeend", `
+      <li class="item">
+        <div class="item-main">
+          <div class="item-name">${escapeHtml(i.name)} ${i.urgent ? '<span class="tag urgent-tag">urgent</span>' : ''}</div>
+          <div class="item-note">${escapeHtml(i.note)}</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn-status" onclick="toggleStatus(${i.id})">Mark as needed</button>
+          <button class="btn-note" onclick="updateNote(${i.id})">Note</button>
+        </div>
+      </li>`);
+  });
+
+  // Needed list
+  const neededEl = document.getElementById("needed-list");
+  neededEl.innerHTML = needed.length ? "" : (urgentFilter
+    ? '<li class="empty-msg">No urgent items right now — nice work! 🎉</li>'
+    : '<li class="empty-msg">Nothing needed at the moment. Terima kasih!</li>');
+  needed.forEach(i => {
+    neededEl.insertAdjacentHTML("beforeend", `
+      <li class="item ${i.urgent ? "urgent" : ""}">
+        <div class="item-main">
+          <div class="item-name">${escapeHtml(i.name)}</div>
+          <div class="item-note">${escapeHtml(i.note)}</div>
+        </div>
+        ${i.urgent ? '<span class="tag urgent-tag">URGENT</span>' : '<span class="tag needed">needed</span>'}
+        <div class="item-actions">
+          <button class="btn-status" onclick="toggleStatus(${i.id})">Mark as available</button>
+        </div>
+      </li>`);
+  });
+
+  // Recent changes
+  const changesEl = document.getElementById("changes-list");
+  changesEl.innerHTML = changes.slice(0, 6).map(c =>
+    `<li class="change">${c.time} — ${c.text}</li>`).join("");
+}
+
+function logChange(text) {
+  const now = new Date();
+  const t = now.toLocaleTimeString("en-MY", { hour: "numeric", minute: "2-digit" });
+  changes.unshift({ time: t, text }); // item names inside text are already escaped
+  changeCount++;
+}
+
+function addItem() {
+  const nameEl = document.getElementById("new-item-name");
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  const note = document.getElementById("new-item-note").value.trim() || "No notes yet";
+  const status = document.getElementById("new-item-status").value;
+  const urgent = document.getElementById("new-item-urgent").checked;
+  items.push({ id: nextId++, name, status, urgent, note });
+  logChange(`You added <strong>${escapeHtml(name)}</strong> as ${urgent && status === "needed" ? "urgent " : ""}${status}`);
+  nameEl.value = "";
+  document.getElementById("new-item-note").value = "";
+  document.getElementById("new-item-urgent").checked = false;
+  render();
+}
+
+function toggleStatus(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.status = item.status === "available" ? "needed" : "available";
+  logChange(`<strong>${escapeHtml(item.name)}</strong> moved to ${item.status === "available" ? "Today's Pantry ✅" : "Needed Now"}`);
+  render();
+}
+
+function updateNote(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const note = prompt("Update the note for \"" + item.name + "\":", item.note);
+  if (note === null) return;
+  item.note = note.trim() || item.note;
+  logChange(`Note updated for <strong>${escapeHtml(item.name)}</strong>`);
+  render();
+}
+
+function setFilter(f) {
+  urgentFilter = f === "urgent";
+  document.querySelectorAll(".filter-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.filter === f));
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
